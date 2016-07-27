@@ -73,45 +73,45 @@
 
 /***/ },
 /* 1 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	// var Map = require('./map.js');
+	var Map = __webpack_require__(2);
 
 	var ListView = function(){
 
 	}
 	ListView.prototype = {
 
-	populateSelect: function(countries, map) {
+	  populateSelect: function(countries, map) {
 	  // console.log(countries);
-	    var parent = document.getElementById('countries');
+	  var parent = document.getElementById('countries');
 	    // console.log(parent)
 	    countries.forEach(function(item, index) {
-	        item.index = index;
-	        var option = document.createElement("option");
-	        option.value = index.toString();
-	        option.text = item.name;
-	        parent.appendChild(option);
+	      item.index = index;
+	      var option = document.createElement("option");
+	      option.value = index.toString();
+	      option.text = item.name;
+	      parent.appendChild(option);
 	    });
 	    parent.style.display = 'block';
 	    parent.addEventListener('change', function (event){
-	        var index = event.target.value;
-	        var country = countries[index];
-	        this.saveToDb(country, map);
+	      var index = event.target.value;
+	      var country = countries[index];
+	      this.saveToDb(country, map);
 	    }.bind(this));
 	    this.populateSavedList(map);
-	},
+	  },
 
-	populateSavedList: function(map){
+	  populateSavedList: function(map){
 
-	  var request = new XMLHttpRequest();
-	  request.open("GET", "http://localhost:3000/countries");
+	    var request = new XMLHttpRequest();
+	    request.open("GET", "http://localhost:3000/countries");
 	  // request.setRequestHeader('Content-Type', 'application/json');
 	  request.onload = function(){
 	    if(request.status === 200){
 	      console.log(request.responseText);
 	      var countriesData = JSON.parse(request.responseText);
-	   
+
 	      countriesData.forEach(function(country){
 	        var ul = document.getElementById('bucket-list');
 	        var li = document.createElement('li');
@@ -146,12 +146,12 @@
 	  }));
 	},
 
-	 updateDisplay: function(country, map) {
-	      var ul = document.getElementById('bucket-list');
-	      var li = document.createElement('li');
-	      li.innerHTML = country.name;
-	      ul.appendChild(li);
-	      map.addMarker({lat: country.lat, lng:country.lng}, country.name)
+	updateDisplay: function(country, map) {
+	  var ul = document.getElementById('bucket-list');
+	  var li = document.createElement('li');
+	  li.innerHTML = country.name;
+	  ul.appendChild(li);
+	  map.addMarker({lat: country.latlng[0], lng:country.latlng[1]}, country.name)
 	}
 	}
 

@@ -42,8 +42,9 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
+	var ListView = __webpack_require__(1);
 	window.onload = function () {
 
 	    var url = 'https://restcountries.eu/rest/v1'
@@ -57,21 +58,30 @@
 	            main(countries);
 	        }
 	    }
-	    request.send();
+	    request.send(null);
 	};
 
 	var main = function (countries) {
-	    populateSelect(countries);
-	    var selected = countries[0];
-	    // updateDisplay(selected);
-	    // document.querySelector('#info').style.display = 'block';
+	    var listView = new ListView();
+	    listView.populateSelect(countries);
 	}
 
-	var populateSelect = function (countries) {
+
+
+/***/ },
+/* 1 */
+/***/ function(module, exports) {
+
+	var ListView = function(){
+
+	}
+	ListView.prototype = {
+
+	populateSelect: function(countries) {
 	  // console.log(countries);
 	    var parent = document.getElementById('countries');
 	    // console.log(parent)
-	    countries.forEach(function (item, index) {
+	    countries.forEach(function(item, index) {
 	        item.index = index;
 	        var option = document.createElement("option");
 	        option.value = index.toString();
@@ -80,26 +90,45 @@
 	    });
 	    parent.style.display = 'block';
 	    parent.addEventListener('change', function (event){
-	        var index = this.value;
+	        var index = event.target.value;
 	        var country = countries[index];
-	        console.log(country);
-	        saveToDb(country);
-	        // console.log(country);
-	        // updateDisplay(country);
-	        // localStorage.setItem("selectedCountry",JSON.stringify(country));
-	    });
-	}
+	        this.saveToDb(country);
+	    }.bind(this));
+	    this.populateSavedList();
+	},
 
-	var saveToDb = function(country){
+	populateSavedList: function(){
+
+	  var request = new XMLHttpRequest();
+	  request.open("GET", "http://localhost:3000/countries");
+	  // request.setRequestHeader('Content-Type', 'application/json');
+	  request.onload = function(){
+	    if(request.status === 200){
+	      console.log(request.responseText);
+	      var countriesData = JSON.parse(request.responseText);
+	   
+	      countriesData.forEach(function(country){
+	        var ul = document.getElementById('bucket-list');
+	        var li = document.createElement('li');
+	        li.innerHTML = country.name;
+	        ul.appendChild(li);
+	      })
+	    }
+	  }
+	  request.send();
+	},
+
+	saveToDb: function(country){
 	  var request = new XMLHttpRequest();
 	  request.open('POST', 'http://localhost:3000/');
 	  request.setRequestHeader('Content-Type', 'application/json');
 	  console.log(country);
-	  // request.onload = function(){
-	  //   if(request.status === 200){
-	      
-	  //   }
-	  // }
+	  request.onload = function(){
+	    if(request.status === 200){
+	      console.log(country);
+	      this.updateDisplay(country); 
+	    }
+	  }.bind(this)
 	  request.send(JSON.stringify({
 	    name: country.name,
 	    population: country.population,
@@ -107,14 +136,17 @@
 	    lng: country.latlng[1]
 
 	  }));
+	},
+
+	 updateDisplay: function(country) {
+	      var ul = document.getElementById('bucket-list');
+	      var li = document.createElement('li');
+	      li.innerHTML = country.name;
+	      ul.appendChild(li);
+	}
 	}
 
-	// var updateDisplay = function (lala) {
-	//     var tags = document.querySelectorAll('#info p');
-	//     tags[0].innerText = lala.name;
-	//     tags[1].innerText = lala.population;
-	//     tags[2].innerText = lala.capital;
-	// }
+	module.exports = ListView;
 
 /***/ }
 /******/ ]);

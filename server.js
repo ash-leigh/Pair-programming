@@ -16,6 +16,17 @@ app.get('/', function(req, res){
   res.sendFile(pth.join(__dirname + 'client/build/index.html'))
 })
 
+app.get('/countries', function(req, res){
+  MongoClient.connect(url, function(err, db){
+    var collection = db.collection('countries');
+    console.log(collection);
+    collection.find({}).toArray( function(err, docs){
+      res.json(docs);
+      db.close();
+    })
+  })
+})
+
 //add country
 app.post('/', function(req, res){
   // console.log(req.body);

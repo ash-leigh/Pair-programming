@@ -1,9 +1,11 @@
+// var Map = require('./map.js');
+
 var ListView = function(){
 
 }
 ListView.prototype = {
 
-populateSelect: function(countries) {
+populateSelect: function(countries, map) {
   // console.log(countries);
     var parent = document.getElementById('countries');
     // console.log(parent)
@@ -18,12 +20,12 @@ populateSelect: function(countries) {
     parent.addEventListener('change', function (event){
         var index = event.target.value;
         var country = countries[index];
-        this.saveToDb(country);
+        this.saveToDb(country, map);
     }.bind(this));
-    this.populateSavedList();
+    this.populateSavedList(map);
 },
 
-populateSavedList: function(){
+populateSavedList: function(map){
 
   var request = new XMLHttpRequest();
   request.open("GET", "http://localhost:3000/countries");
@@ -38,13 +40,16 @@ populateSavedList: function(){
         var li = document.createElement('li');
         li.innerHTML = country.name;
         ul.appendChild(li);
+        map.addMarker({lat: country.lat, lng:country.lng}, country.name)
+        console.log(country.lat);
+        console.log(country.lng)
       })
     }
   }
   request.send();
 },
 
-saveToDb: function(country){
+saveToDb: function(country, map){
   var request = new XMLHttpRequest();
   request.open('POST', 'http://localhost:3000/');
   request.setRequestHeader('Content-Type', 'application/json');
@@ -52,7 +57,7 @@ saveToDb: function(country){
   request.onload = function(){
     if(request.status === 200){
       console.log(country);
-      this.updateDisplay(country); 
+      this.updateDisplay(country, map); 
     }
   }.bind(this)
   request.send(JSON.stringify({
@@ -64,11 +69,12 @@ saveToDb: function(country){
   }));
 },
 
- updateDisplay: function(country) {
+ updateDisplay: function(country, map) {
       var ul = document.getElementById('bucket-list');
       var li = document.createElement('li');
       li.innerHTML = country.name;
       ul.appendChild(li);
+      map.addMarker({lat: country.lat, lng:country.lng}, country.name)
 }
 }
 

@@ -45,7 +45,10 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var ListView = __webpack_require__(1);
+	var Map = __webpack_require__(2);
+
 	window.onload = function () {
+	    var map = new Map({lat: 0, lng: 0}, 1);
 
 	    var url = 'https://restcountries.eu/rest/v1'
 	    var request = new XMLHttpRequest();
@@ -55,15 +58,15 @@
 	            var jsonString = request.responseText;
 	            var countries = JSON.parse(jsonString);
 	            console.log(countries);
-	            main(countries);
+	            main(countries, map);
 	        }
 	    }
 	    request.send(null);
 	};
 
-	var main = function (countries) {
+	var main = function (countries, map) {
 	    var listView = new ListView();
-	    listView.populateSelect(countries);
+	    listView.populateSelect(countries, map);
 	}
 
 
@@ -72,12 +75,14 @@
 /* 1 */
 /***/ function(module, exports) {
 
+	// var Map = require('./map.js');
+
 	var ListView = function(){
 
 	}
 	ListView.prototype = {
 
-	populateSelect: function(countries) {
+	populateSelect: function(countries, map) {
 	  // console.log(countries);
 	    var parent = document.getElementById('countries');
 	    // console.log(parent)
@@ -92,12 +97,12 @@
 	    parent.addEventListener('change', function (event){
 	        var index = event.target.value;
 	        var country = countries[index];
-	        this.saveToDb(country);
+	        this.saveToDb(country, map);
 	    }.bind(this));
-	    this.populateSavedList();
+	    this.populateSavedList(map);
 	},
 
-	populateSavedList: function(){
+	populateSavedList: function(map){
 
 	  var request = new XMLHttpRequest();
 	  request.open("GET", "http://localhost:3000/countries");
@@ -112,13 +117,16 @@
 	        var li = document.createElement('li');
 	        li.innerHTML = country.name;
 	        ul.appendChild(li);
+	        map.addMarker({lat: country.lat, lng:country.lng}, country.name)
+	        console.log(country.lat);
+	        console.log(country.lng)
 	      })
 	    }
 	  }
 	  request.send();
 	},
 
-	saveToDb: function(country){
+	saveToDb: function(country, map){
 	  var request = new XMLHttpRequest();
 	  request.open('POST', 'http://localhost:3000/');
 	  request.setRequestHeader('Content-Type', 'application/json');
@@ -126,7 +134,7 @@
 	  request.onload = function(){
 	    if(request.status === 200){
 	      console.log(country);
-	      this.updateDisplay(country); 
+	      this.updateDisplay(country, map); 
 	    }
 	  }.bind(this)
 	  request.send(JSON.stringify({
@@ -138,15 +146,38 @@
 	  }));
 	},
 
-	 updateDisplay: function(country) {
+	 updateDisplay: function(country, map) {
 	      var ul = document.getElementById('bucket-list');
 	      var li = document.createElement('li');
 	      li.innerHTML = country.name;
 	      ul.appendChild(li);
+	      map.addMarker({lat: country.lat, lng:country.lng}, country.name)
 	}
 	}
 
 	module.exports = ListView;
+
+/***/ },
+/* 2 */
+/***/ function(module, exports) {
+
+	var Map = function(latLng, zoom){
+	  this.googleMap = new google.maps.Map(document.getElementById('map'), {
+	    center: latLng,
+	    zoom: zoom
+	  })
+
+	  this.addMarker = function(latLng, title){
+	    var marker = new google.maps.Marker({
+	      position: latLng,
+	      map: this.googleMap,
+	      title: title
+	    })
+	    return marker;
+	  }
+	}
+
+	module.exports = Map;
 
 /***/ }
 /******/ ]);
